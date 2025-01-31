@@ -1,0 +1,136 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+
+public class ElectricityBillingSystem extends JFrame implements ActionListener {
+    JLabel l1, l2, l3, l4, l5;
+    JTextField t1, t2, t3;
+    JButton calculate, save, view;
+    JTextArea billArea;
+    
+    Connection con;
+    PreparedStatement pst;
+
+    public ElectricityBillingSystem() {
+        // Setting Frame Properties
+        setTitle("Electricity Billing System");
+        setSize(400, 500);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new FlowLayout());
+
+        // UI Components
+        l1 = new JLabel("Customer Name:");
+        t1 = new JTextField(15);
+        
+        l2 = new JLabel("Customer ID:");
+        t2 = new JTextField(15);
+        
+        l3 = new JLabel("Units Consumed:");
+        t3 = new JTextField(10);
+        
+        calculate = new JButton("Calculate Bill");
+        save = new JButton("Save Bill");
+        view = new JButton("View Bills");
+        
+        billArea = new JTextArea(10, 30);
+        billArea.setEditable(false);
+
+        // Adding Components to Frame
+        add(l1); add(t1);
+        add(l2); add(t2);
+        add(l3); add(t3);
+        add(calculate); add(save); add(view);
+        add(new JScrollPane(billArea));
+
+        // Action Listeners
+        calculate.addActionListener(this);
+        save.addActionListener(this);
+        view.addActionListener(this);
+
+        // Database Connection
+        try {
+            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/electricity_db", "root", "password");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Database Connection Error!");
+        }
+
+        setVisible(true);
+    }
+
+    public void actionPerformed(ActionEvent ae) {
+        if (ae.getSource() == calculate) {
+            // Calculate bill
+            try {
+                String name = t1.getText();
+                int id = Integer.parseInt(t2.getText());
+                int units = Integer.parseInt(t3.getText());
+
+                double rate = 5.0; // Rate per unit
+                double total = units * rate;
+
+                billArea.setText("Customer: " + name + "\nCustomer ID: " + id +
+                                 "\nUnits: " + units + "\nTotal Bill: Rs. " + total);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Invalid Input!");
+            }
+        }
+
+        if (ae.getSource() == save) {
+            // Save to Database
+            try {
+                String name = t1.getText();
+                int id = Integer.parseInt(t2.getText());
+                int units = Integer.parseInt(t3.getText());
+                double total = units * 5.0; // Fixed rate per unit
+                
+                String query = "INSERT INTO bills (customer_id, customer_name, units, total_amount) VALUES (?, ?, ?, ?)";
+                pst = con.prepareStatement(query);
+                pst.setInt(1, id);
+                pst.setString(2, name);
+                pst.setInt(3, units);
+                pst.setDouble(4, total);
+                pst.executeUpdate();
+
+                JOptionPane.showMessageDialog(this, "Bill Saved Successfully!");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error Saving Bill!");
+            }
+        }
+
+        if (ae.getSource() == view) {
+            // Retrieve Bills from Database
+            try {
+                String query = "SELECT * FROM bills";
+                Statement st = con.createStatement();
+                ResultSet rs = st.executeQuery(query);
+
+                billArea.setText("Bills History:\n");
+                while (rs.next()) {
+                    billArea.append("\nID: " + rs.getInt("customer_id") + 
+                                    " | Name: " + rs.getString("customer_name") + 
+                                    " | Units: " + rs.getInt("units") + 
+                                    " | Total: Rs. " + rs.getDouble("total_amount"));
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error Fetching Bills!");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        new ElectricityBillingSystem();
+    }
+}
+Databse Table Structure
+
+CREATE DATABASE electricity_db;
+USE electricity_db;
+
+CREATE TABLE bills (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_id INT NOT NULL,
+    customer_name VARCHAR(100) NOT NULL,
+    units INT NOT NULL,
+    total_amount DOUBLE NOT NULL
+);
