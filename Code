@@ -1,136 +1,186 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
-public class ElectricityBillingSystem extends JFrame implements ActionListener {
-    JLabel l1, l2, l3, l4, l5;
-    JTextField t1, t2, t3;
-    JButton calculate, save, view;
-    JTextArea billArea;
-    
-    Connection con;
-    PreparedStatement pst;
+// Class to store customer details
+class Customer {
+    private String name;        // Customer's name
+    private int customerID;     // Unique Customer ID
+    private double unitsConsumed; // Number of electricity units consumed
 
-    public ElectricityBillingSystem() {
-        // Setting Frame Properties
-        setTitle("Electricity Billing System");
-        setSize(400, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new FlowLayout());
-
-        // UI Components
-        l1 = new JLabel("Customer Name:");
-        t1 = new JTextField(15);
-        
-        l2 = new JLabel("Customer ID:");
-        t2 = new JTextField(15);
-        
-        l3 = new JLabel("Units Consumed:");
-        t3 = new JTextField(10);
-        
-        calculate = new JButton("Calculate Bill");
-        save = new JButton("Save Bill");
-        view = new JButton("View Bills");
-        
-        billArea = new JTextArea(10, 30);
-        billArea.setEditable(false);
-
-        // Adding Components to Frame
-        add(l1); add(t1);
-        add(l2); add(t2);
-        add(l3); add(t3);
-        add(calculate); add(save); add(view);
-        add(new JScrollPane(billArea));
-
-        // Action Listeners
-        calculate.addActionListener(this);
-        save.addActionListener(this);
-        view.addActionListener(this);
-
-        // Database Connection
-        try {
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/electricity_db", "root", "password");
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Database Connection Error!");
-        }
-
-        setVisible(true);
+    // Constructor to initialize customer details
+    public Customer(String name, int customerID, double unitsConsumed) {
+        this.name = name;
+        this.customerID = customerID;
+        this.unitsConsumed = unitsConsumed;
     }
 
-    public void actionPerformed(ActionEvent ae) {
-        if (ae.getSource() == calculate) {
-            // Calculate bill
-            try {
-                String name = t1.getText();
-                int id = Integer.parseInt(t2.getText());
-                int units = Integer.parseInt(t3.getText());
-
-                double rate = 5.0; // Rate per unit
-                double total = units * rate;
-
-                billArea.setText("Customer: " + name + "\nCustomer ID: " + id +
-                                 "\nUnits: " + units + "\nTotal Bill: Rs. " + total);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Invalid Input!");
-            }
-        }
-
-        if (ae.getSource() == save) {
-            // Save to Database
-            try {
-                String name = t1.getText();
-                int id = Integer.parseInt(t2.getText());
-                int units = Integer.parseInt(t3.getText());
-                double total = units * 5.0; // Fixed rate per unit
-                
-                String query = "INSERT INTO bills (customer_id, customer_name, units, total_amount) VALUES (?, ?, ?, ?)";
-                pst = con.prepareStatement(query);
-                pst.setInt(1, id);
-                pst.setString(2, name);
-                pst.setInt(3, units);
-                pst.setDouble(4, total);
-                pst.executeUpdate();
-
-                JOptionPane.showMessageDialog(this, "Bill Saved Successfully!");
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Error Saving Bill!");
-            }
-        }
-
-        if (ae.getSource() == view) {
-            // Retrieve Bills from Database
-            try {
-                String query = "SELECT * FROM bills";
-                Statement st = con.createStatement();
-                ResultSet rs = st.executeQuery(query);
-
-                billArea.setText("Bills History:\n");
-                while (rs.next()) {
-                    billArea.append("\nID: " + rs.getInt("customer_id") + 
-                                    " | Name: " + rs.getString("customer_name") + 
-                                    " | Units: " + rs.getInt("units") + 
-                                    " | Total: Rs. " + rs.getDouble("total_amount"));
-                }
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Error Fetching Bills!");
-            }
-        }
+    // Getter methods
+    public String getName() {
+        return name;
     }
 
-    public static void main(String[] args) {
-        new ElectricityBillingSystem();
+    public int getCustomerID() {
+        return customerID;
+    }
+
+    public double getUnitsConsumed() {
+        return unitsConsumed;
+    }
+
+    // Method to update units consumed (for updating bills)
+    public void setUnitsConsumed(double units) {
+        this.unitsConsumed = units;
     }
 }
-Databse Table Structure
 
-CREATE DATABASE electricity_db;
-USE electricity_db;
+// Class to calculate and manage electricity bills
+class Bill {
+    private Customer customer;
+    private static final double TAX_RATE = 0.10; // 10% tax
+    private static final double FIXED_CHARGE = 50.00; // Fixed service charge
 
-CREATE TABLE bills (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    customer_id INT NOT NULL,
-    customer_name VARCHAR(100) NOT NULL,
-    units INT NOT NULL,
-    total_amount DOUBLE NOT NULL
-);
+    // Constructor to initialize Bill with customer details
+    public Bill(Customer customer) {
+        this.customer = customer;
+    }
+
+    // Method to calculate the bill based on tiered pricing
+    public double calculateBill() {
+        double units = customer.getUnitsConsumed();
+        double billAmount = 0;
+
+        // Tiered pricing structure
+        if (units <= 100) {
+            billAmount = units * 3.50;  // First 100 units: $3.50 per unit
+        } else if (units <= 300) {
+            billAmount = (100 * 3.50) + ((units - 100) * 5.00);  // 101-300 units: $5.00 per unit
+        } else {
+            billAmount = (100 * 3.50) + (200 * 5.00) + ((units - 300) * 7.00);  // Above 300 units: $7.00 per unit
+        }
+
+        // Adding fixed charges and tax
+        double totalBill = billAmount + FIXED_CHARGE;
+        totalBill += totalBill * TAX_RATE; // Adding tax
+
+        return totalBill;
+    }
+
+    // Method to display the electricity bill details
+    public void displayBill() {
+        System.out.println("\n---------- Electricity Bill ----------");
+        System.out.println("Customer Name    : " + customer.getName());
+        System.out.println("Customer ID      : " + customer.getCustomerID());
+        System.out.println("Units Consumed   : " + customer.getUnitsConsumed());
+        System.out.println("Fixed Charge     : $" + FIXED_CHARGE);
+        System.out.println("Tax (10%)        : $" + (calculateBill() * TAX_RATE));
+        System.out.println("Total Bill Amount: $" + calculateBill());
+        System.out.println("--------------------------------------");
+    }
+}
+
+// Main class with menu-driven system
+public class ElectricityBillingSystem {
+    private static List<Customer> customers = new ArrayList<>(); // List to store multiple customers
+    private static Scanner scanner = new Scanner(System.in); // Scanner object for user input
+
+    public static void main(String[] args) {
+        while (true) {
+            // Displaying menu options
+            System.out.println("\n===== Electricity Billing System =====");
+            System.out.println("1. Add New Customer");
+            System.out.println("2. Generate Bill for Customer");
+            System.out.println("3. View All Customers");
+            System.out.println("4. Update Customer's Units");
+            System.out.println("5. Exit");
+            System.out.print("Enter your choice: ");
+            
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    addCustomer();
+                    break;
+                case 2:
+                    generateBill();
+                    break;
+                case 3:
+                    viewAllCustomers();
+                    break;
+                case 4:
+                    updateUnits();
+                    break;
+                case 5:
+                    System.out.println("Exiting System... Thank you!");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice! Please select a valid option.");
+            }
+        }
+    }
+
+    // Method to add a new customer
+    private static void addCustomer() {
+        System.out.print("Enter Customer Name: ");
+        String name = scanner.nextLine();
+
+        System.out.print("Enter Customer ID: ");
+        int id = scanner.nextInt();
+
+        System.out.print("Enter Units Consumed: ");
+        double units = scanner.nextDouble();
+
+        // Creating and adding customer to the list
+        Customer customer = new Customer(name, id, units);
+        customers.add(customer);
+        System.out.println("Customer added successfully!");
+    }
+
+    // Method to generate and display the bill for a customer
+    private static void generateBill() {
+        System.out.print("Enter Customer ID to generate bill: ");
+        int id = scanner.nextInt();
+
+        for (Customer customer : customers) {
+            if (customer.getCustomerID() == id) {
+                Bill bill = new Bill(customer);
+                bill.displayBill();
+                return;
+            }
+        }
+        System.out.println("Customer not found!");
+    }
+
+    // Method to display all customers
+    private static void viewAllCustomers() {
+        if (customers.isEmpty()) {
+            System.out.println("No customers available.");
+            return;
+        }
+
+        System.out.println("\n------ Customer List ------");
+        for (Customer customer : customers) {
+            System.out.println("ID: " + customer.getCustomerID() + " | Name: " + customer.getName() + 
+                               " | Units: " + customer.getUnitsConsumed());
+        }
+    }
+
+    // Method to update customer's units consumed
+    private static void updateUnits() {
+        System.out.print("Enter Customer ID to update units: ");
+        int id = scanner.nextInt();
+
+        for (Customer customer : customers) {
+            if (customer.getCustomerID() == id) {
+                System.out.print("Enter new units consumed: ");
+                double newUnits = scanner.nextDouble();
+                customer.setUnitsConsumed(newUnits);
+                System.out.println("Units updated successfully!");
+                return;
+            }
+        }
+        System.out.println("Customer not found!");
+    }
+}
