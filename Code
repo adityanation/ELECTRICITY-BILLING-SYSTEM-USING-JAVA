@@ -9,23 +9,7 @@ class Customer {
     private double unitsConsumed; // Number of electricity units consumed
 
     // Constructor to initialize customer details
-    public Customer(String name, int customerID, double unitsConsumed) {
-        this.name = name;
-        this.customerID = customerID;
-        this.unitsConsumed = unitsConsumed;
-    }
-
-    // Getter methods
-    public String getName() {
-        return name;
-    }
-
-    public int getCustomerID() {
-        return customerID;
-    }
-
-    public double getUnitsConsumed() {
-        return unitsConsumed;
+    public 
     }
 
     // Method to update units consumed (for updating bills)
