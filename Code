@@ -6,9 +6,7 @@ import java.util.Scanner;
 class Customer {
     private String name;        // Customer's name
     private int customerID;     // Unique Customer ID
-    private double unitsConsumed; // Number of electricity units consumed
-
-    // Constructor to initialize customer details
+    private double unitsConsumed; // Number of electricity units consume
     public 
     }
 
@@ -98,28 +96,7 @@ public class ElectricityBillingSystem {
                 case 5:
                     System.out.println("Exiting System... Thank you!");
                     scanner.close();
-                    return;
-                default:
-                    System.out.println("Invalid choice! Please select a valid option.");
-            }
-        }
-    }
-
-    // Method to add a new customer
-    private static void addCustomer() {
-        System.out.print("Enter Customer Name: ");
-        String name = scanner.nextLine();
-
-        System.out.print("Enter Customer ID: ");
-        int id = scanner.nextInt();
-
-        System.out.print("Enter Units Consumed: ");
-        double units = scanner.nextDouble();
-
-        // Creating and adding customer to the list
-        Customer customer = new Customer(name, id, units);
-        customers.add(customer);
-        System.out.println("Customer added successfully!");
+                    return;ded successfully!");
     }
 
     // Method to generate and display the bill for a customer
