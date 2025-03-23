@@ -13,10 +13,4 @@ maintainability, and scalability.
 
 Key Features:
 1. User Registration: Consumers can register their electricity connections by
-providing necessary details such as name, address, and meter number,
-ensuring a systematic record of customers.
-2. Meter Reading Management: The system allows utility service providers to
-record and update meter readings periodically. These readings are used to
-calculate the electricity consumption of individual consumers.
-3. Billing Calculation: The application automates the process of calculating
-electricity c
+pr
