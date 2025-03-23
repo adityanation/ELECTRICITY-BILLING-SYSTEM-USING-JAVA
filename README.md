@@ -23,11 +23,4 @@ electricity consumption based on meter readings, tariff rates, and other
 relevant parameters. It ensures accurate and error-free billing.
 4. Bill Generation: The system generates detailed electricity bills for consumers,
 including usage details, tariff rates, applicable taxes, and total amount
-payable. Bills are generated automatically and can be accessed by consumers
-online.
-5. Usage History: Consumers can view their historical electricity consumption
-data, allowing them to track their usage patterns over time. This feature
-promotes awareness and encourages energy conservation.
-6. User Authentication and Security: The system incorporates user
-authentication mechanisms to ensure secure access. Consumer data is
-protected to maintain confidentiality and privacy.
+payable. Bills are generated automatica
