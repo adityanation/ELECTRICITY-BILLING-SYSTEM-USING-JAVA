@@ -19,8 +19,4 @@ ensuring a systematic record of customers.
 record and update meter readings periodically. These readings are used to
 calculate the electricity consumption of individual consumers.
 3. Billing Calculation: The application automates the process of calculating
-electricity consumption based on meter readings, tariff rates, and other
-relevant parameters. It ensures accurate and error-free billing.
-4. Bill Generation: The system generates detailed electricity bills for consumers,
-including usage details, tariff rates, applicable taxes, and total amount
-payable. Bills are generated automatica
+electricity c
